@@ -1,0 +1,41 @@
+server:
+  port: 8080 # Porta padrão de entrada do sistema
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true # Permite encontrar serviços automaticamente
+          lower-case-service-id: true
+      routes:
+        # Rota para Professor Service (Professores e Escolas)
+        - id: professor-service
+          uri: lb://professor-service
+          predicates:
+            - Path=/api/professores/**, /api/escolas/**, /api/formacoes/**
+          filters:
+            - StripPrefix=1 # Remove o '/api' antes de mandar pro serviço (opcional, dependendo de como o serviço for feito)
+
+        # Rota para Catalog Service (Disciplinas e Horários)
+        - id: catalog-service
+          uri: lb://catalog-service
+          predicates:
+            - Path=/api/disciplinas/**, /api/horarios/**
+          filters:
+            - StripPrefix=1
+
+        # Rota para Allocation Service (Turmas)
+        - id: allocation-service
+          uri: lb://allocation-service
+          predicates:
+            - Path=/api/turmas/**
+          filters:
+            - StripPrefix=1
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
